@@ -6,7 +6,9 @@ import numpy as np
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 import torch
 import torch.nn.functional as F
-from model import MMDynamic
+# from model import MMDynamic
+from models import MMDynamic
+
 
 cuda = True if torch.cuda.is_available() else False
 

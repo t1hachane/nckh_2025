@@ -8,7 +8,7 @@ import torch
 import torch.nn.functional as F
 # from model import MMDynamic
 from models import MMDynamic
-
+from utils import one_hot_tensor, cal_sample_weight, gen_adj_mat_tensor, gen_test_adj_mat_tensor, cal_adj_mat_parameter
 
 cuda = True if torch.cuda.is_available() else False
 
@@ -61,6 +61,16 @@ def prepare_trte_data(data_folder):
     labels = np.concatenate((labels_tr, labels_te))
     return data_train_list, data_test_list, idx_dict, labels
 
+def gen_trte_adj_mat(data_tr_list, data_trte_list, trte_idx, adj_parameter):
+    adj_metric = "cosine" # cosine distance
+    adj_train_list = []
+    adj_test_list = []
+    for i in range(len(data_tr_list)):
+        adj_parameter_adaptive = cal_adj_mat_parameter(adj_parameter, data_tr_list[i], adj_metric)
+        adj_train_list.append(gen_adj_mat_tensor(data_tr_list[i], adj_parameter_adaptive, adj_metric))
+        adj_test_list.append(gen_test_adj_mat_tensor(data_trte_list[i], trte_idx, adj_parameter_adaptive, adj_metric))
+    
+    return adj_train_list, adj_test_list
 
 def train_epoch(data_list, label, model, optimizer):
     model.train()

@@ -12,7 +12,7 @@ if __name__ == "__main__":
     postfix_tr = str(sys.argv[3])
     postfix_te = str(sys.argv[4])
 
-    saved_model_dict_folder = str(sys.argv[5])
+    model_path = str(sys.argv[5])
 
     # do not input space when declare a list
     # [ 1 ,   2] should be [1,2]
@@ -24,11 +24,11 @@ if __name__ == "__main__":
     # 1e-3
     lr = float(sys.argv[8])
 
-    modelpath = str(sys.argv[9])
-    testonly = str(sys.argv[10])
-    hidden_dim = list(map(int, sys.argv[11].strip("[]").split(",")))
+    
+    testonly = str(sys.argv[9])
+    hidden_dim = list(map(int, sys.argv[10].strip("[]").split(",")))
 
-    print_hyper = str(sys.argv[12])
+    print_hyper = str(sys.argv[11])
 
     if (print_hyper):
         print(
@@ -46,7 +46,7 @@ if __name__ == "__main__":
                 - Data Test
                     = {postfix_te}
                 - Saved Model Loc
-                    = {saved_model_dict_folder}
+                    = {model_path}
                 - List Views
                     = {view_list}
 
@@ -58,6 +58,10 @@ if __name__ == "__main__":
                     = {lr}
                 - Hidden dim
                     = {hidden_dim}
+
+                *
+                - Test Only
+                    = {testonly}
             """
         )
 
@@ -73,7 +77,7 @@ if __name__ == "__main__":
         lr, 
         num_epoch,
         rseed,
-        modelpath, testonly,
+        model_path, testonly,
         hidden_dim=[1000]
     )
-    save_model_dict(saved_model_dict_folder, model_dict)
+    save_model_dict(model_path, model_dict)

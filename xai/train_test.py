@@ -173,7 +173,7 @@ def train_test(data_folder, view_list, num_class,
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.2)
     print("Test only: ", testonly)  
-    if testonly:
+    if testonly == True:
         load_checkpoint(model, os.path.join(modelpath, data_folder, 'checkpoint.pt'))
         te_prob = test_epoch(data_test_list, model)
         if num_class == 2:

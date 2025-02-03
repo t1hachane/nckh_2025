@@ -18,31 +18,17 @@ if __name__ == "__main__":
     # [ 1 ,   2] should be [1,2]
     view_list = list(map(int, sys.argv[6].strip("[]").split(",")))
 
-    # 500
-    num_epoch_pretrain = int(sys.argv[7])
-
     # 2500
-    num_epoch = int(sys.argv[8])
+    num_epoch = int(sys.argv[7])
 
     # 1e-3
-    lr_e_pretrain = float(sys.argv[9])
+    lr = float(sys.argv[8])
 
-    # 5e-4
-    lr_e = float(sys.argv[10])
+    modelpath = str(sys.argv[9])
+    testonly = str(sys.argv[10])
+    hidden_dim = list(map(int, sys.argv[11].strip("[]").split(",")))
 
-    # 1e-3
-    lr_c = float(sys.argv[11])
-
-    bool_using_early_stopping = str(sys.argv[12]).lower() in [
-        "true",
-        "1",
-        "t",
-        "y",
-        "yes",
-    ]
-    verbose = str(sys.argv[13]).lower() in ["true", "1", "t", "y", "yes"]
-    print_hyper = str(sys.argv[14]).lower() in ["true", "1", "t", "y", "yes"]
-    dim_he_list = list(map(int, sys.argv[15].strip("[]").split(",")))
+    print_hyper = str(sys.argv[12])
 
     if (print_hyper):
         print(
@@ -65,17 +51,13 @@ if __name__ == "__main__":
                     = {view_list}
 
                 *
-                - Num Epoch PreTrain
-                    = {num_epoch_pretrain}
                 - Num Epoch PostTrain
                     = {num_epoch}
-                - Lr Encoder PreTrain
-                    = {lr_e_pretrain}
-                - Lr Encoder PostTrain
-                    = {lr_e}
-                - Lr Classifier PostTrain
-                    = {lr_c}
-                - Bool using early stopping = {bool_using_early_stopping}
+
+                - Lr Classifier
+                    = {lr}
+                - Hidden dim
+                    = {hidden_dim}
             """
         )
 
@@ -83,22 +65,15 @@ if __name__ == "__main__":
         num_class = 5
     if "GBM" in data_folder:
         num_class = 4
-    if bool_using_early_stopping:
-        patience = int(sys.argv[16])
+
     model_dict = train_test(
         data_folder,
         view_list,
         num_class,
-        lr_e_pretrain,
-        lr_e,
-        lr_c,
-        num_epoch_pretrain,
+        lr, 
         num_epoch,
         rseed,
-        postfix_tr,
-        postfix_te,
-        patience,
-        verbose,
-        dim_he_list
+        modelpath, testonly,
+        hidden_dim=[1000]
     )
     save_model_dict(saved_model_dict_folder, model_dict)

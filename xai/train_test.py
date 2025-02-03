@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 import torch
 import torch.nn.functional as F
 # from model import MMDynamic
-from models import MMDynamic
+from models import MMDynamic, init_model_dict
 from utils import one_hot_tensor, cal_sample_weight, gen_adj_mat_tensor, gen_test_adj_mat_tensor, cal_adj_mat_parameter
 
 cuda = True if torch.cuda.is_available() else False
@@ -121,6 +121,53 @@ def train(data_folder, modelpath, testonly):
     onehot_labels_tr_tensor = onehot_labels_tr_tensor.cuda()
     dim_list = [x.shape[1] for x in data_tr_list]
     model = MMDynamic(dim_list, hidden_dim, num_class, dropout=0.5)
+    model.cuda()
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.2)
+    if testonly:
+        load_checkpoint(model, os.path.join(modelpath, data_folder, 'checkpoint.pt'))
+        te_prob = test_epoch(data_test_list, model)
+        if num_class == 2:
+            print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
+            print("Test F1: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
+            print("Test AUC: {:.5f}".format(roc_auc_score(labels_trte[trte_idx["te"]], te_prob[:,1])))
+        else:
+            print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
+            print("Test F1 weighted: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted')))
+            print("Test F1 macro: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')))
+    else:    
+        print("\nTraining...")
+        for epoch in range(num_epoch+1):
+            train_epoch(data_tr_list, labels_tr_tensor, model, optimizer)
+            scheduler.step()
+            if epoch % test_inverval == 0:
+                te_prob = test_epoch(data_test_list, model)
+                print("\nTest: Epoch {:d}".format(epoch))
+                if num_class == 2:
+                    print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
+                    print("Test F1: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
+                    print("Test AUC: {:.5f}".format(roc_auc_score(labels_trte[trte_idx["te"]], te_prob[:,1])))
+                else:
+                    print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
+                    print("Test F1 weighted: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted')))
+                    print("Test F1 macro: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')))
+        save_checkpoint(model.state_dict(), os.path.join(modelpath, data_folder))
+
+def train_test(data_folder, view_list, num_class,
+               lr,
+               num_epoch, 
+               rseed, 
+               modelpath, testonly,
+               hidden_dim=[1000]):
+    test_inverval = 50
+    step_size = 500
+    data_tr_list, data_test_list, trte_idx, labels_trte = prepare_trte_data(data_folder)
+    labels_tr_tensor = torch.LongTensor(labels_trte[trte_idx["tr"]])
+    onehot_labels_tr_tensor = one_hot_tensor(labels_tr_tensor, num_class)
+    labels_tr_tensor = labels_tr_tensor.cuda()
+    onehot_labels_tr_tensor = onehot_labels_tr_tensor.cuda()
+    dim_list = [x.shape[1] for x in data_tr_list]
+    model = init_model_dict(num_class, dim_list, hidden_dim)
     model.cuda()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.2)

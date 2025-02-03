@@ -109,6 +109,10 @@ def train_test(data_folder, view_list, num_class,
                postfix_tr='_tr',
                postfix_te='_val',
                hidden_dim=[1000]):
+    if rseed>=0:
+        torch.manual_seed(rseed)
+        np.random.seed(rseed)
+        
     test_inverval = 50
     step_size = 500
     data_tr_list, data_test_list, trte_idx, labels_trte = prepare_trte_data(data_folder, view_list, postfix_tr, postfix_te)

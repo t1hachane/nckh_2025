@@ -80,4 +80,3 @@ if __name__ == "__main__":
         model_path, testonly,
         hidden_dim=[1000]
     )
-    save_model_dict(model_path, model_dict)

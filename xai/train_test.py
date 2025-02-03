@@ -167,7 +167,8 @@ def train_test(data_folder, view_list, num_class,
     labels_tr_tensor = labels_tr_tensor.cuda()
     onehot_labels_tr_tensor = onehot_labels_tr_tensor.cuda()
     dim_list = [x.shape[1] for x in data_tr_list]
-    model = init_model_dict(num_class, dim_list, hidden_dim)
+    model_dict = init_model_dict(num_class, dim_list, hidden_dim)
+    model = model_dict["MMDynamic"]
     model.cuda()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.2)

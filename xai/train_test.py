@@ -17,17 +17,20 @@ def one_hot_tensor(y, num_dim):
     y_onehot.scatter_(1, y.view(-1,1), 1)    
     return y_onehot
 
-def prepare_trte_data(data_folder):
-    num_view = 3
-    labels_tr = np.loadtxt(os.path.join(data_folder, "labels_tr.csv"), delimiter=',')
-    labels_te = np.loadtxt(os.path.join(data_folder, "labels_te.csv"), delimiter=',')
+def prepare_trte_data(data_folder, view_list, postfix_tr='_tr', postfix_te='_val'):
+    # load train, test data
+    num_view = len(view_list)
+    # begin: need to fix
+    labels_tr = np.loadtxt(os.path.join(data_folder, f"labels{postfix_tr}.csv"), delimiter=',')
+    labels_te = np.loadtxt(os.path.join(data_folder, f"labels{postfix_te}.csv"), delimiter=',')
+
     labels_tr = labels_tr.astype(int)
     labels_te = labels_te.astype(int)
     data_tr_list = []
     data_te_list = []
     for i in range(1, num_view+1):
-        data_tr_list.append(np.loadtxt(os.path.join(data_folder, str(i)+"_tr.csv"), delimiter=','))
-        data_te_list.append(np.loadtxt(os.path.join(data_folder, str(i)+"_te.csv"), delimiter=','))
+        data_tr_list.append(np.loadtxt(os.path.join(data_folder, str(i)+f"{postfix_tr}.csv"), delimiter=','))
+        data_te_list.append(np.loadtxt(os.path.join(data_folder, str(i)+f"{postfix_te}.csv"), delimiter=','))
     
     eps = 1e-10
     X_train_min = [np.min(data_tr_list[i], axis=0, keepdims=True) for i in range(len(data_tr_list))]
@@ -98,70 +101,17 @@ def load_checkpoint(model, path):
     best_checkpoint = torch.load(path)
     model.load_state_dict(best_checkpoint)
 
-
-def train(data_folder, modelpath, testonly):
-    test_inverval = 50
-    if 'BRCA' in data_folder:
-        hidden_dim = [1000]
-        num_epoch = 2500
-        lr = 1e-4
-        step_size = 500
-        num_class = 5
-    elif 'ROSMAP' in data_folder:
-        hidden_dim = [1000]
-        num_epoch = 1000
-        lr = 1e-4
-        step_size = 500
-        num_class = 2
-
-    data_tr_list, data_test_list, trte_idx, labels_trte = prepare_trte_data(data_folder)
-    labels_tr_tensor = torch.LongTensor(labels_trte[trte_idx["tr"]])
-    onehot_labels_tr_tensor = one_hot_tensor(labels_tr_tensor, num_class)
-    labels_tr_tensor = labels_tr_tensor.cuda()
-    onehot_labels_tr_tensor = onehot_labels_tr_tensor.cuda()
-    dim_list = [x.shape[1] for x in data_tr_list]
-    model = MMDynamic(dim_list, hidden_dim, num_class, dropout=0.5)
-    model.cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.2)
-    if testonly:
-        load_checkpoint(model, os.path.join(modelpath, data_folder, 'checkpoint.pt'))
-        te_prob = test_epoch(data_test_list, model)
-        if num_class == 2:
-            print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-            print("Test F1: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-            print("Test AUC: {:.5f}".format(roc_auc_score(labels_trte[trte_idx["te"]], te_prob[:,1])))
-        else:
-            print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-            print("Test F1 weighted: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted')))
-            print("Test F1 macro: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')))
-    else:    
-        print("\nTraining...")
-        for epoch in range(num_epoch+1):
-            train_epoch(data_tr_list, labels_tr_tensor, model, optimizer)
-            scheduler.step()
-            if epoch % test_inverval == 0:
-                te_prob = test_epoch(data_test_list, model)
-                print("\nTest: Epoch {:d}".format(epoch))
-                if num_class == 2:
-                    print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-                    print("Test F1: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-                    print("Test AUC: {:.5f}".format(roc_auc_score(labels_trte[trte_idx["te"]], te_prob[:,1])))
-                else:
-                    print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-                    print("Test F1 weighted: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted')))
-                    print("Test F1 macro: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')))
-        save_checkpoint(model.state_dict(), os.path.join(modelpath, data_folder))
-
 def train_test(data_folder, view_list, num_class,
                lr,
                num_epoch, 
                rseed, 
                modelpath, testonly,
+               postfix_tr='_tr',
+               postfix_te='_val',
                hidden_dim=[1000]):
     test_inverval = 50
     step_size = 500
-    data_tr_list, data_test_list, trte_idx, labels_trte = prepare_trte_data(data_folder)
+    data_tr_list, data_test_list, trte_idx, labels_trte = prepare_trte_data(data_folder, view_list, postfix_tr, postfix_te)
     labels_tr_tensor = torch.LongTensor(labels_trte[trte_idx["tr"]])
     onehot_labels_tr_tensor = one_hot_tensor(labels_tr_tensor, num_class)
     labels_tr_tensor = labels_tr_tensor.cuda()
@@ -172,7 +122,6 @@ def train_test(data_folder, view_list, num_class,
     model.cuda()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.2)
-    print("Test only: ", testonly)  
     if testonly == True:
         load_checkpoint(model, os.path.join(modelpath, data_folder, 'checkpoint.pt'))
         te_prob = test_epoch(data_test_list, model)
@@ -200,4 +149,4 @@ def train_test(data_folder, view_list, num_class,
                     print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
                     print("Test F1 weighted: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted')))
                     print("Test F1 macro: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')))
-        save_checkpoint(model.state_dict(), os.path.join(modelpath, data_folder))
+        save_checkpoint(model.state_dict(), modelpath)

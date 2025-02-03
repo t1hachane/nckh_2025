@@ -24,8 +24,8 @@ if __name__ == "__main__":
     # 1e-3
     lr = float(sys.argv[8])
 
-    
     testonly = str(sys.argv[9])
+
     hidden_dim = list(map(int, sys.argv[10].strip("[]").split(",")))
 
     print_hyper = str(sys.argv[11])

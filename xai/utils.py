@@ -119,7 +119,7 @@ def save_model_dict(folder, model_dict):
     if not os.path.exists(folder):
         os.makedirs(folder)
     for module in model_dict:
-        torch.save(model_dict[module].state_dict(), os.path.join(folder, module+".pth"))
+        torch.save(model_dict[module].state_dict(), os.path.join(folder, module+".pt"))
             
     
 def load_model_dict(folder, model_dict):
@@ -127,7 +127,7 @@ def load_model_dict(folder, model_dict):
         print(os.path.join(folder, module+".pt"))
         if os.path.exists(os.path.join(folder, module+".pt")):
 #            print("Module {:} loaded!".format(module))
-            model_dict[module].load_state_dict(torch.load(os.path.join(folder, module+".pth"), map_location="cuda:{:}".format(torch.cuda.current_device())))
+            model_dict[module].load_state_dict(torch.load(os.path.join(folder, module+".pt"), map_location="cuda:{:}".format(torch.cuda.current_device())))
         else:
             print("WARNING: Module {:} from model_dict is not loaded!".format(module))
         if cuda:

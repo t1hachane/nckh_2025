@@ -91,7 +91,7 @@ def test_epoch(data_list, model):
         prob = F.softmax(logit, dim=1).data.cpu().numpy()
     return prob
 
-def save_checkpoint(model, checkpoint_path, filename="checkpoint.pt"):
+def save_checkpoint(model, checkpoint_path, filename="MMDynamic.pt"):
     os.makedirs(checkpoint_path, exist_ok=True)
     filename = os.path.join(checkpoint_path, filename)
     torch.save(model, filename)
@@ -127,7 +127,7 @@ def train_test(data_folder, view_list, num_class,
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.2)
     if testonly == True:
-        load_checkpoint(model, os.path.join(modelpath, data_folder, 'checkpoint.pt'))
+        load_checkpoint(model, os.path.join(modelpath, data_folder, 'MMDynamic.pt'))
         te_prob = test_epoch(data_test_list, model)
         if num_class == 2:
             print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))

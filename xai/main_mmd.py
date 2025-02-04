@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     print_hyper = str(sys.argv[11])
 
-    if (print_hyper):
+    if (print_hyper == True):
         print(
             f"""
             Config:

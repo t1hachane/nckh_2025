@@ -74,14 +74,6 @@ class MMDynamic(nn.Module):
         MMlogit = self.forward(data_list, infer=True)
         return MMlogit
 
-# def init_model_dict(num_view, num_class, dim_list, dim_he_list, dim_hc, gcn_dopout=0.5):
-#     model_dict = {}
-#     for i in range(num_view):
-#         model_dict["E{:}".format(i+1)] = GCN_E(dim_list[i], dim_he_list, gcn_dopout)
-#         model_dict["C{:}".format(i+1)] = Classifier_1(dim_he_list[-1], num_class)
-#     if num_view >= 2:
-#         model_dict["C"] = VCDN(num_view, num_class, dim_hc)
-#     return model_dict
 
 def init_model_dict(num_class, dim_list, hidden_dim):
     model_dict = {}

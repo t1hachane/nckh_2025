@@ -9,8 +9,46 @@ import torch.nn.functional as F
 # from model import MMDynamic
 from models import MMDynamic, init_model_dict
 from utils import one_hot_tensor, cal_sample_weight, gen_adj_mat_tensor, gen_test_adj_mat_tensor, cal_adj_mat_parameter
+import copy
 
 cuda = True if torch.cuda.is_available() else False
+
+class EarlyStopping:
+    
+    def __init__(self, patience=7, verbose=False, delta=0.001):
+        
+        self.patience = patience
+        self.verbose = verbose
+        self.counter = 0
+        self.best_score = None
+        self.best_weights = None
+        self.best_epoch = None
+        self.early_stop = False
+        self.metric_higher_better_max = 0.0
+        self.delta = delta
+
+    def __call__(self, metric_higher_better, epoch, model_dict):
+
+        score = metric_higher_better
+
+        if self.best_score is None:
+            self.best_score = score
+            self.save_checkpoint(metric_higher_better, epoch, model_dict)
+        elif score < self.best_score + self.delta:
+            self.counter += 1
+            if self.counter >= self.patience:
+                self.early_stop = True
+                print(f'Early stop at epoch {epoch}th after {self.counter} epochs not increasing score from epoch {self.best_epoch}th with best score {self.best_score}')
+        else:
+            self.best_score = score
+            self.save_checkpoint(metric_higher_better, epoch, model_dict)
+            self.counter = 0
+
+    def save_checkpoint(self, metric_higher_better, epoch, model_dict):
+        self.best_weights = copy.deepcopy(model_dict)
+        self.metric_higher_better_max = metric_higher_better
+        self.best_epoch = epoch
+
 
 def one_hot_tensor(y, num_dim):
     y_onehot = torch.zeros(y.shape[0], num_dim)

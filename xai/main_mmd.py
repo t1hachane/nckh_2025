@@ -35,7 +35,7 @@ if __name__ == "__main__":
     verbose = str(sys.argv[13])
 
 
-    if (print_hyper == True):
+    if (print_hyper == 'True'):
         print(
             f"""
             Config:

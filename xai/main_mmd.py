@@ -95,4 +95,4 @@ if __name__ == "__main__":
         hidden_dim=[1000]
     )
 
-    save_model_dict(saved_model_dict_folder, model_dict)
+    save_model_dict(model_path, model_dict)

@@ -34,6 +34,8 @@ if __name__ == "__main__":
 
     verbose = str(sys.argv[13])
 
+    saved_model_dict_folder = str(sys.argv[14])
+
 
     if (print_hyper == 'True'):
         print(
@@ -92,3 +94,5 @@ if __name__ == "__main__":
         verbose=verbose,
         hidden_dim=[1000]
     )
+
+    save_model_dict(saved_model_dict_folder, model_dict)

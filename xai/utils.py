@@ -125,11 +125,22 @@ def save_model_dict(folder, model_dict):
 def load_model_dict(folder, model_dict):
     for module in model_dict:
         if os.path.exists(os.path.join(folder, module+".pt")):
-            state_dict = torch.load(os.path.join(folder, module+".pt"), 
-                                  map_location=f"cuda:{torch.cuda.current_device()}")
-            # Create a new state dict copy
-            new_state_dict = {}
-            for key, value in state_dict.items():
-                new_state_dict[key] = value.clone()
-            model_dict[module].load_state_dict(new_state_dict)
+#            print("Module {:} loaded!".format(module))
+            model_dict[module].load_state_dict(torch.load(os.path.join(folder, module+".pt"), map_location="cuda:{:}".format(torch.cuda.current_device())))
+        else:
+            print("WARNING: Module {:} from model_dict is not loaded!".format(module))
+        if cuda:
+            model_dict[module].cuda()    
     return model_dict
+
+# def load_model_dict(folder, model_dict):
+#     for module in model_dict:
+#         if os.path.exists(os.path.join(folder, module+".pt")):
+#             state_dict = torch.load(os.path.join(folder, module+".pt"), 
+#                                   map_location=f"cuda:{torch.cuda.current_device()}")
+#             # Create a new state dict copy
+#             new_state_dict = {}
+#             for key, value in state_dict.items():
+#                 new_state_dict[key] = value.clone()
+#             model_dict[module].load_state_dict(new_state_dict)
+#     return model_dict

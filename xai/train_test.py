@@ -183,6 +183,7 @@ def train_test(data_folder, view_list, num_class,
             # using early stopping: 
             early_stopping = EarlyStopping(patience = patience, verbose = verbose)
 
+        best_model_dict = None
         for epoch in range(num_epoch+1):
             train_epoch(data_tr_list, labels_tr_tensor, model, optimizer)
             scheduler.step()
@@ -199,13 +200,26 @@ def train_test(data_folder, view_list, num_class,
                         print("Test F1 macro: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')))
             if patience is not None:
                 if num_class == 2:
-                    early_stopping(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1)), epoch, model_dict)
+                    score = f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))
                 else:
-                    early_stopping(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted'), epoch, model_dict)
+                    score = f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted')
+
+                early_stopping(score, epoch, model_dict)
+                best_model_dict = early_stopping.best_weights
+                
                 if early_stopping.early_stop:
-                    model = early_stopping.best_weights
-                    # save_checkpoint(model, modelpath, filename="MMDynamic.pt")
+                    print(f"Early stopping triggered. Using best model from epoch {early_stopping.best_epoch}")
                     break
+
+            if early_stopping is not None:
+                if early_stopping.early_stop:
+                    # Use the best model from early stopping
+                    model_dict = early_stopping.best_weights
+                else:
+                    # No early stop => store the final epoch's model
+                    early_stopping.best_weights = copy.deepcopy(model_dict)
+                    model_dict = early_stopping.best_weights
+            
 
     return model
         

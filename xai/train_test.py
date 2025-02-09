@@ -188,7 +188,7 @@ def train_test(data_folder, view_list, num_class,
             scheduler.step()
             te_prob = test_epoch(data_test_list, model)
             te_acc = accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))
-            if verbose:
+            if verbose == 'True':
                 if epoch % test_inverval == 0:
                     print("\nTest: Epoch {:d}".format(epoch))
                     if num_class == 2:

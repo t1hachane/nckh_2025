@@ -144,14 +144,16 @@ def train_test(data_folder, view_list, num_class,
                num_epoch, 
                rseed, 
                modelpath, testonly,
+               test_inverval = 50,
                postfix_tr='_tr',
                postfix_te='_val',
+               patience=7,
+               verbose=False,
                hidden_dim=[1000]):
     if rseed>=0:
         torch.manual_seed(rseed)
         np.random.seed(rseed)
         
-    test_inverval = 50
     step_size = 500
     data_tr_list, data_test_list, trte_idx, labels_trte = prepare_trte_data(data_folder, view_list, postfix_tr, postfix_te)
     labels_tr_tensor = torch.LongTensor(labels_trte[trte_idx["tr"]])
@@ -177,18 +179,35 @@ def train_test(data_folder, view_list, num_class,
             print("Test F1 macro: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')))
     else:    
         print("\nTraining...")
+        if patience is not None:
+            # using early stopping: 
+            early_stopping = EarlyStopping(patience = patience, verbose = verbose)
+
         for epoch in range(num_epoch+1):
             train_epoch(data_tr_list, labels_tr_tensor, model, optimizer)
             scheduler.step()
-            if epoch % test_inverval == 0:
-                te_prob = test_epoch(data_test_list, model)
-                print("\nTest: Epoch {:d}".format(epoch))
+            te_prob = test_epoch(data_test_list, model)
+            te_acc = accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))
+            if verbose:
+                if epoch % test_inverval == 0:
+                    print("\nTest: Epoch {:d}".format(epoch))
+                    if num_class == 2:
+                        print("Test F1: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
+                        print("Test AUC: {:.5f}".format(roc_auc_score(labels_trte[trte_idx["te"]], te_prob[:,1])))
+                    else:
+                        print("Test F1 weighted: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted')))
+                        print("Test F1 macro: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')))
+            if patience is not None:
                 if num_class == 2:
-                    print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-                    print("Test F1: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-                    print("Test AUC: {:.5f}".format(roc_auc_score(labels_trte[trte_idx["te"]], te_prob[:,1])))
+                    early_stopping(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1)), epoch, model_dict)
                 else:
-                    print("Test ACC: {:.5f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-                    print("Test F1 weighted: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted')))
-                    print("Test F1 macro: {:.5f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')))
-        save_checkpoint(model.state_dict(), modelpath)
+                    early_stopping(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted'), epoch, model_dict)
+                if early_stopping.early_stop:
+                    model = early_stopping.best_weights["MMDynamic"]
+                    save_checkpoint(model, modelpath, filename="MMDynamic.pt")
+
+    return model
+        
+        
+
+

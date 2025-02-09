@@ -88,5 +88,7 @@ if __name__ == "__main__":
         num_epoch,
         rseed,
         model_path, testonly,
+        patience=patience,
+        verbose=verbose,
         hidden_dim=[1000]
     )

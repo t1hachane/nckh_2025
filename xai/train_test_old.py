@@ -11,7 +11,7 @@ import copy
 
 cuda = True if torch.cuda.is_available() else False
 
-class c:
+class EarlyStopping:
     
     def __init__(self, patience=7, verbose=False, delta=0.001):
         

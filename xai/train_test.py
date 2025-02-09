@@ -205,6 +205,7 @@ def train_test(data_folder, view_list, num_class,
                 if early_stopping.early_stop:
                     model = early_stopping.best_weights["MMDynamic"]
                     save_checkpoint(model, modelpath, filename="MMDynamic.pt")
+                    break
 
     return model
         

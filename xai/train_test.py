@@ -180,6 +180,7 @@ def train_test(data_folder, view_list, num_class,
     else:    
         print("\nTraining...")
         if patience is not None:
+            print("PATIENCE", patience)
             # using early stopping: 
             early_stopping = EarlyStopping(patience = patience, verbose = verbose)
 

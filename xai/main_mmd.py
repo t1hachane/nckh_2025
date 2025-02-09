@@ -30,6 +30,10 @@ if __name__ == "__main__":
 
     print_hyper = str(sys.argv[11])
 
+    patience = int(sys.argv[12])
+
+    verbose = str(sys.argv[13])
+
     if (print_hyper == True):
         print(
             f"""

@@ -204,7 +204,7 @@ def train_test(data_folder, view_list, num_class,
                     early_stopping(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted'), epoch, model_dict)
                 if early_stopping.early_stop:
                     model = early_stopping.best_weights
-                    save_checkpoint(model, modelpath, filename="MMDynamic.pt")
+                    # save_checkpoint(model, modelpath, filename="MMDynamic.pt")
                     break
 
     return model

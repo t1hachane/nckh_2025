@@ -216,11 +216,11 @@ def train_test(data_folder, view_list, num_class,
         if early_stopping is not None:
             if early_stopping.early_stop:
                 # Use the best model from early stopping
-                model_dict = early_stopping.best_weights
+                model = early_stopping.best_weights
             else:
                 # No early stop => store the final epoch's model
                 early_stopping.best_weights = copy.deepcopy(model_dict)
-                model_dict = early_stopping.best_weights
+                model = early_stopping.best_weights
 
     return model
         

@@ -150,6 +150,7 @@ def train_test(data_folder, view_list, num_class,
                patience=7,
                verbose=False,
                hidden_dim=[1000]):
+    print("PATIENCE", patience)
     if rseed>=0:
         torch.manual_seed(rseed)
         np.random.seed(rseed)
@@ -204,7 +205,7 @@ def train_test(data_folder, view_list, num_class,
                 else:
                     early_stopping(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted'), epoch, model_dict)
                 if early_stopping.early_stop:
-                    model = early_stopping.best_weights["MMDynamic"]
+                    model = early_stopping.best_weights
                     save_checkpoint(model, modelpath, filename="MMDynamic.pt")
                     break
 

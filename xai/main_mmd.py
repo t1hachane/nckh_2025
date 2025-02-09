@@ -34,6 +34,7 @@ if __name__ == "__main__":
 
     verbose = str(sys.argv[13])
 
+
     if (print_hyper == True):
         print(
             f"""
@@ -66,6 +67,11 @@ if __name__ == "__main__":
                 *
                 - Test Only
                     = {testonly}
+
+                - Patience
+                    = {patience}
+                - Verbose   
+                    = {verbose}
             """
         )
 

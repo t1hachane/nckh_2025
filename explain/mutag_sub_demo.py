@@ -21,7 +21,8 @@ from torch import FloatTensor, LongTensor, Tensor
 from torch_geometric.data import Batch, Data, InMemoryDataset
 from torch_geometric.datasets import TUDataset
 from torch_geometric.loader import DataLoader
-from torch_geometric.nn import GCNConv, GINConv, GNNExplainer, global_max_pool
+from torch_geometric.nn import GCNConv, GINConv, global_max_pool
+from torch_geometric.explain import GNNExplainer
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.models import GIN
 from torch_geometric.utils import k_hop_subgraph, remove_self_loops, to_networkx
@@ -62,6 +63,10 @@ def visualize_subgraph_mutag(graph: nx.Graph,
                              node_set: Optional[Set[int]] = None,
                              edge_set: Optional[Set[int]] = None,
                              title: Optional[str] = None) -> None:
+    
+    print("Node_set", node_set)
+    print("Edge_set", edge_set)
+
     if node_set is None:
         node_set = set(graph.nodes())
 
@@ -95,9 +100,10 @@ model_explain = Explain(model=net, min_nodes=num_nodes)
 for i, mutag_data in enumerate(mutag_dataset.ds[:1]):
     graph = to_networkx(mutag_data, node_attrs=['x'], edge_attrs=['edge_attr'], to_undirected=True)
     subgraph = model_explain.explain(x=mutag_data.x.to(device), edge_index=mutag_data.edge_index.to(device), max_nodes=num_nodes)
+    print("Subgraph.coalition", subgraph.coalition)
+    print("Type subgraph.coalition", type(subgraph.coalition))
     visualize_subgraph_mutag(
         graph=graph,
         node_set=set(subgraph.coalition),
         title=f'Identified subgraph in bold'
     )
-

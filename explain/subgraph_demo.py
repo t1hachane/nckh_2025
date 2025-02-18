@@ -21,7 +21,8 @@ from torch import FloatTensor, LongTensor, Tensor
 from torch_geometric.data import Batch, Data, InMemoryDataset
 from torch_geometric.datasets import TUDataset
 from torch_geometric.loader import DataLoader
-from torch_geometric.nn import GCNConv, GINConv, GNNExplainer, global_max_pool
+from torch_geometric.nn import GCNConv, GINConv, global_max_pool
+from torch_geometric.explain import GNNExplainer
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.models import GIN
 from torch_geometric.utils import k_hop_subgraph, remove_self_loops, to_networkx
@@ -84,7 +85,7 @@ def get_best_mcts_node(results: List[MCTSNode], max_nodes: int) -> MCTSNode:
         raise ValueError(f'All subgraphs have more than {max_nodes} nodes.')
     results = sorted(results, key=lambda result: result.size)
     best_result = max(results, key=lambda result: (result.P, -result.size))
-
+    print(f'Best subgraph: {best_result.coalition} with score {best_result.P}')
     return best_result
 
 
@@ -167,7 +168,7 @@ class MCTS(object):
 
         explanations = [node for _, node in self.state_map.items()]
         explanations = sorted(explanations, key=lambda x: (x.P, -x.size), reverse=True)
-
+        print(len(explanations))
         return explanations
 
 
@@ -211,8 +212,8 @@ class Explain(object):
 
         # Run the MCTS search
         mcts_nodes = mcts.run_mcts()
-
         # such that the subgraph has at most max_nodes nodes
         best_mcts_node = get_best_mcts_node(mcts_nodes, max_nodes=max_nodes)
 
+        print(type(best_mcts_node.coalition))
         return best_mcts_node

@@ -2,7 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, GINConv, GNNExplainer, global_max_pool
+from torch_geometric.nn import GCNConv, GINConv, global_max_pool
+from torch_geometric.explain import GNNExplainer
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.models import GIN
 from torch import FloatTensor, LongTensor, Tensor

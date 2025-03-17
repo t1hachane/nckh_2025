@@ -113,10 +113,10 @@ def gen_trte_adj_mat(data_tr_list, data_trte_list, trte_idx, adj_parameter):
     
     return adj_train_list, adj_test_list
 
-def train_epoch(data_list, label, model, optimizer):
+def train_epoch(epoch, data_list, label, model, optimizer):
     model.train()
     optimizer.zero_grad()
-    loss, _ = model(data_list, label)
+    loss, _ = model(epoch, data_list, label)
     loss = torch.mean(loss)
     loss.backward()
     optimizer.step()
@@ -185,7 +185,7 @@ def train_test(data_folder, view_list, num_class,
 
         best_model_dict = None
         for epoch in range(num_epoch+1):
-            train_epoch(data_tr_list, labels_tr_tensor, model, optimizer)
+            train_epoch(epoch, data_tr_list, labels_tr_tensor, model, optimizer)
             scheduler.step()
             te_prob = test_epoch(data_test_list, model)
             te_acc = accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))

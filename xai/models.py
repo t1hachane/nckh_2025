@@ -66,6 +66,8 @@ class MMDynamic(nn.Module):
             MMLoss = MMLoss+torch.mean(FeatureInfo[view])
             pred = F.softmax(TCPLogit[view], dim=1)
             p_target = torch.gather(input=pred, dim=1, index=label.unsqueeze(dim=1)).view(-1)
+            print("pred------------", pred)
+            print("p_target-------", p_target)
             confidence_loss = torch.mean(F.mse_loss(TCPConfidence[view].view(-1), p_target)+criterion(TCPLogit[view], label))
             MMLoss = MMLoss+confidence_loss
         return MMLoss, MMlogit

@@ -46,7 +46,7 @@ class MCTSNode(object):
         self.c_puct = c_puct
         self.W = W
         self.N = N
-        self.P = P
+        self.P = P # Immediate reward
         self.children: List[MCTSNode] = []
 
     def Q(self) -> float:
@@ -60,7 +60,8 @@ class MCTSNode(object):
         return len(self.coalition)
 
 
-def gnn_score(coalition: Tuple[int, ...], data: Data, model: torch.nn.Module) -> float:
+def gnn_score(coalition: Tuple[int, ...], data: Data, model: torch.nn.Module, target_class: torch.tensor) -> float:
+    print(f'Coalition: {coalition}')
     node_mask = torch.zeros(data.num_nodes, dtype=torch.bool, device=data.x.device)
     node_mask[list(coalition)] = 1
 
@@ -74,9 +75,10 @@ def gnn_score(coalition: Tuple[int, ...], data: Data, model: torch.nn.Module) ->
 
     logits = model(x=mask_data.x, edge_index=mask_data.edge_index, batch=mask_data.batch)
     # score = torch.sigmoid(logits).cpu().detach().numpy()
-    score = torch.sigmoid(logits).item()
-
-    return score
+    prob = torch.sigmoid(logits).cpu().detach().numpy()
+    score = prob[0][target_class]
+    score_total = torch.sum(prob).cpu().detach().numpy()
+    return score_total
 
 
 def get_best_mcts_node(results: List[MCTSNode], max_nodes: int) -> MCTSNode:
@@ -104,8 +106,9 @@ class MCTS(object):
                  high2low: bool) -> None:
         self.x = x
         self.edge_index = edge_index
-        self.model = model
         self.num_hops = num_hops
+
+        self.model = model
         self.data = Data(x=self.x, edge_index=self.edge_index)
         self.graph = to_networkx(
             Data(x=self.x, edge_index=remove_self_loops(self.edge_index)[0]),
@@ -137,14 +140,26 @@ class MCTS(object):
             )
             all_nodes_set = set(all_nodes)
             expand_nodes = all_nodes[:self.num_expand_nodes]
+
+            # top k node xem xét để bỏ (bị prune)
             for expand_node in expand_nodes:
+
+                # tạo 1 subgraph mới -> có thể có nhiều thành phần liên thông -> nên mới được gọi là subgraph_coalition
                 subgraph_coalition = all_nodes_set - {expand_node}
+
+                # số lượng connected component còn lại khi xóa bỏ each_node và cạnh liên kết với each_node -> tập các subgraph nên mới có chữ s
                 subgraphs = (
                     self.graph.subgraph(connected_component)
                     for connected_component in nx.connected_components(self.graph.subgraph(subgraph_coalition))
                 )
+
+                # chọn connected component có số lượng node lớn nhất
                 subgraph = max(subgraphs, key=lambda subgraph: subgraph.number_of_nodes())
+
+                # tạo 1 subgraph mới từ MỘT connected component lớn nhất
                 new_coalition = tuple(sorted(subgraph.nodes()))
+
+                # tạo 1 node mới từ subgraph mới
                 new_node = self.state_map.setdefault(new_coalition, self.MCTSNodeClass(coalition=new_coalition))
                 if new_coalition not in tree_children_coalitions:
                     tree_node.children.append(new_node)

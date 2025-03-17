@@ -70,6 +70,7 @@ class MMDynamic(nn.Module):
                 print("pred------------", pred.shape)
                 print("p_target-------", p_target.shape)
                 print("TCPConfidence[view]-------", TCPConfidence[view].view(-1).shape, TCPConfidence[0].shape)
+                print(TCPConfidence[view].view(-1))
             confidence_loss = torch.mean(F.mse_loss(TCPConfidence[view].view(-1), p_target)+criterion(TCPLogit[view], label))
             MMLoss = MMLoss+confidence_loss
         return MMLoss, MMlogit

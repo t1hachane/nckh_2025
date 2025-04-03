@@ -60,7 +60,7 @@ class MMDynamic(nn.Module):
         # print(feature)
         # # if infer:
         # print("FeatureInfo")
-        MMfeature = torch.cat([i.unsqueeze(0) for i in feature.values()], dim=1)
+        MMfeature = torch.cat([i.unsqueeze(1) for i in feature.values()], dim=1)
         MMlogit = self.MMClasifier(MMfeature)
         if infer:
             return MMlogit

@@ -61,6 +61,7 @@ class MMDynamic(nn.Module):
 
 
         MMlogit = self.MMClasifier(MMfeature)
+        print(f"MMlogit shape: {MMlogit.shape}")            
         if infer:
             return MMlogit
         MMLoss = torch.mean(criterion(MMlogit, label))

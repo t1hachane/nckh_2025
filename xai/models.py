@@ -57,8 +57,8 @@ class MMDynamic(nn.Module):
             TCPConfidence[view] = self.TCPConfidenceLayer[view](feature[view])
             feature[view] = feature[view] * TCPConfidence[view]
 
-        if infer:
-            print(feature)
+        # if infer:
+        print(feature)
         MMfeature = torch.cat([i for i in feature.values()], dim=1)
         MMlogit = self.MMClasifier(MMfeature)
         if infer:

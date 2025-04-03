@@ -61,7 +61,7 @@ class MMDynamic(nn.Module):
             print(f"Shape of {key}: {tensor.shape}")
         # # if infer:
         # print("FeatureInfo")
-        MMfeature = torch.cat([i for i in feature.values()], dim=1)
+        MMfeature = torch.cat([i.view(1, -1) if i.dim() == 1 else i for i in feature.values()], dim=1)
         MMfeature1 = torch.stack(list(feature.values()), dim=1)
         print("MMfeature1", MMfeature1.shape, "MMfeature", MMfeature.shape)
         MMlogit = self.MMClasifier(MMfeature)

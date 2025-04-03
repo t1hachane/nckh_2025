@@ -57,6 +57,7 @@ class MMDynamic(nn.Module):
             TCPConfidence[view] = self.TCPConfidenceLayer[view](feature[view])
             feature[view] = feature[view] * TCPConfidence[view]
 
+        print(feature) 
         for key, value in feature.items():
             print(f"Feature[{key}] shape: {value.shape}")
         MMfeature = torch.cat([i for i in feature.values()], dim=1)

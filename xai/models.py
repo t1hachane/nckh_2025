@@ -57,15 +57,12 @@ class MMDynamic(nn.Module):
             TCPConfidence[view] = self.TCPConfidenceLayer[view](feature[view])
             feature[view] = feature[view] * TCPConfidence[view]
         
-        for key, tensor in feature.items():
-            print(f"Shape of {key}: {tensor.shape}")
-        # # if infer:
-        # print("FeatureInfo")
         MMfeature = torch.cat([i.view(1, -1) if i.dim() == 1 else i for i in feature.values()], dim=1)
-        MMfeature1 = torch.stack(list(feature.values()), dim=1)
-        print("MMfeature1", MMfeature1.shape, "MMfeature", MMfeature.shape)
+
+
         MMlogit = self.MMClasifier(MMfeature)
-        if infer:
+        print(type(infer))
+        if infer == True:
             return MMlogit
         MMLoss = torch.mean(criterion(MMlogit, label))
         for view in range(self.views):

@@ -1,6 +1,3 @@
-""" Example for biomarker identification
-"""
-
 import sys
 import os
 import copy

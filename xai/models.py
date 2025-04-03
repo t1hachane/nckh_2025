@@ -61,9 +61,8 @@ class MMDynamic(nn.Module):
 
 
         MMlogit = self.MMClasifier(MMfeature)
-        print(type(infer))
-        # if infer == True:
-        #     return MMlogit
+        if infer:
+            return MMlogit
         MMLoss = torch.mean(criterion(MMlogit, label))
         for view in range(self.views):
             MMLoss = MMLoss+torch.mean(FeatureInfo[view])

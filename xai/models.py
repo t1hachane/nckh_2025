@@ -60,18 +60,17 @@ class MMDynamic(nn.Module):
         MMfeature = torch.cat([i.view(1, -1) if i.dim() == 1 else i for i in feature.values()], dim=1)
 
 
-        MMlogit = self.MMClasifier(MMfeature)
-        print(f"MMlogit shape: {MMlogit.shape}")            
-
+        MMlogit = self.MMClasifier(MMfeature)          
+        if infer:
+            return MMlogit
+        MMLoss = torch.mean(criterion(MMlogit, label))
+        for view in range(self.views):
+            MMLoss = MMLoss+torch.mean(FeatureInfo[view])
+            pred = F.softmax(TCPLogit[view], dim=1)
+            p_target = torch.gather(input=pred, dim=1, index=label.unsqueeze(dim=1)).view(-1)
+            confidence_loss = torch.mean(F.mse_loss(TCPConfidence[view].view(-1), p_target)+criterion(TCPLogit[view], label))
+            MMLoss = MMLoss+confidence_loss
         return MMlogit
-        # MMLoss = torch.mean(criterion(MMlogit, label))
-        # for view in range(self.views):
-        #     MMLoss = MMLoss+torch.mean(FeatureInfo[view])
-        #     pred = F.softmax(TCPLogit[view], dim=1)
-        #     p_target = torch.gather(input=pred, dim=1, index=label.unsqueeze(dim=1)).view(-1)
-        #     confidence_loss = torch.mean(F.mse_loss(TCPConfidence[view].view(-1), p_target)+criterion(TCPLogit[view], label))
-        #     MMLoss = MMLoss+confidence_loss
-        # return MMlogit
     
     def infer(self, data_list):
         MMlogit = self.forward(data_list, infer=True)

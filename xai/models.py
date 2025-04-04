@@ -70,7 +70,7 @@ class MMDynamic(nn.Module):
             p_target = torch.gather(input=pred, dim=1, index=label.unsqueeze(dim=1)).view(-1)
             confidence_loss = torch.mean(F.mse_loss(TCPConfidence[view].view(-1), p_target)+criterion(TCPLogit[view], label))
             MMLoss = MMLoss+confidence_loss
-        return MMlogit
+        return MMLoss, MMlogit
     
     def infer(self, data_list):
         MMlogit = self.forward(data_list, infer=True)

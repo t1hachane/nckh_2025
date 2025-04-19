@@ -20,6 +20,10 @@ if __name__ == "__main__":
         num_class = 5
     if "GBM" in data_folder:
         num_class = 4
+    if "Lung" in data_folder:
+        num_class = 2
+    if "CRC" in data_folder:
+        num_class = 4
 
     featimp_list_list = []
     for rep in range(num_models):

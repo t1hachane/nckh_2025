@@ -81,6 +81,8 @@ if __name__ == "__main__":
         num_class = 5
     if "GBM" in data_folder:
         num_class = 4
+    if "Lung" in data_folder:
+        num_class = 2
 
     model_dict = train_test(
         data_folder,
